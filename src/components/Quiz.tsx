@@ -10,7 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { generateQuizQuestions, QuizQuestion } from '@/services/aiService';
 import { saveQuizResult } from '@/services/progressService';
 import { SUBJECTS, DIFFICULTY_LEVELS } from '@/lib/constants';
-import { CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, AlertCircle, Brain } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 
