@@ -1,5 +1,6 @@
 
-const API_KEY = "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";
+// It's better to use environment variables for API keys
+const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 const API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 export interface QuizQuestion {

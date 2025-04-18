@@ -19,6 +19,14 @@ const Quiz: React.FC = () => {
   const location = useLocation();
   const { subject, difficulty, questionCount, timePerQuestion } = location.state || {};
   
+  // Redirect to home if required parameters are missing
+  useEffect(() => {
+    if (!subject || !difficulty || !questionCount || !timePerQuestion) {
+      toast.error("Veuillez configurer votre quiz d'abord");
+      navigate('/');
+    }
+  }, [subject, difficulty, questionCount, timePerQuestion, navigate]);
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
