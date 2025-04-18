@@ -1,5 +1,3 @@
-
-
 const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || "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";
 const API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
@@ -36,14 +34,8 @@ export const generateQuizQuestions = async (
     ]`;
 
     console.log("Sending request to OpenRouter API");
-    console.log("API Key present:", !!API_KEY);
+    console.log("API Key used:", API_KEY.substring(0, 10) + "...");
     
-    // For mock data during development if no API key is provided
-    if (!API_KEY) {
-      console.log("Using mock data because no API key is provided");
-      return generateMockQuestions(count);
-    }
-
     const response = await fetch(API_URL, {
       method: "POST",
       headers: {
@@ -62,26 +54,33 @@ export const generateQuizQuestions = async (
       }),
     });
 
+    console.log("API Response status:", response.status);
+    
     if (!response.ok) {
       const errorData = await response.json();
-      console.error("API Error:", errorData);
-      throw new Error(`API Error: ${errorData.error?.message || "Unknown error"}`);
+      console.error("API Error details:", errorData);
+      throw new Error(`API Error: ${errorData.error?.message || response.statusText || "Unknown error"}`);
     }
 
     const data = await response.json();
+    console.log("API Response received, parsing content");
+    
     const content = data.choices[0]?.message?.content;
     
     if (!content) {
+      console.error("No content in API response:", data);
       throw new Error("No content returned from API");
     }
 
     // Extract JSON from content (in case there's any text before or after)
     const jsonMatch = content.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
+      console.error("Could not parse JSON from content:", content);
       throw new Error("Could not parse JSON response");
     }
 
     const parsedQuestions = JSON.parse(jsonMatch[0]);
+    console.log(`Successfully parsed ${parsedQuestions.length} questions`);
     
     // Add IDs to each question
     return parsedQuestions.map((q: any, index: number) => ({
@@ -90,13 +89,11 @@ export const generateQuizQuestions = async (
     }));
   } catch (error) {
     console.error("Error generating questions:", error);
-    // If the API fails, use mock data as fallback
-    console.log("Falling back to mock data due to API error");
-    return generateMockQuestions(count);
+    throw error; // Re-throw the error instead of using mock data
   }
 };
 
-// Helper function to generate mock questions when API is not available
+// Keep the mock data function for development purposes, but don't use it as a fallback
 const generateMockQuestions = (count: number): QuizQuestion[] => {
   const mockQuestions: QuizQuestion[] = [
     {
@@ -139,4 +136,3 @@ const generateMockQuestions = (count: number): QuizQuestion[] => {
   // Return only the requested number of questions
   return mockQuestions.slice(0, count);
 };
-
