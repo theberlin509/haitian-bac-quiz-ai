@@ -1,3 +1,5 @@
+
+// Make sure to use the environment variable if available, otherwise fallback to the hardcoded key
 const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || "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";
 const API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
@@ -34,13 +36,24 @@ export const generateQuizQuestions = async (
     ]`;
 
     console.log("Sending request to OpenRouter API");
-    console.log("API Key used:", API_KEY.substring(0, 10) + "...");
+    
+    // For better debugging, securely log a portion of the API key
+    const apiKeyPreview = API_KEY ? `${API_KEY.substring(0, 8)}...` : "Not found";
+    console.log("API Key preview:", apiKeyPreview);
+    
+    // Validate that we have an API key before making the request
+    if (!API_KEY) {
+      throw new Error("API key is missing. Please set the VITE_OPENROUTER_API_KEY environment variable.");
+    }
     
     const response = await fetch(API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${API_KEY}`,
+        // Add standard headers required by OpenRouter
+        "HTTP-Referer": window.location.origin,
+        "X-Title": "Bac Haïtien Quiz Generator"
       },
       body: JSON.stringify({
         model: "google/gemini-pro",
@@ -59,6 +72,13 @@ export const generateQuizQuestions = async (
     if (!response.ok) {
       const errorData = await response.json();
       console.error("API Error details:", errorData);
+      
+      // When in development, use mock data as fallback
+      if (import.meta.env.DEV) {
+        console.log("DEV mode: Falling back to mock data due to API error");
+        return generateMockQuestions(count);
+      }
+      
       throw new Error(`API Error: ${errorData.error?.message || response.statusText || "Unknown error"}`);
     }
 
@@ -69,6 +89,9 @@ export const generateQuizQuestions = async (
     
     if (!content) {
       console.error("No content in API response:", data);
+      if (import.meta.env.DEV) {
+        return generateMockQuestions(count);
+      }
       throw new Error("No content returned from API");
     }
 
@@ -76,6 +99,9 @@ export const generateQuizQuestions = async (
     const jsonMatch = content.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
       console.error("Could not parse JSON from content:", content);
+      if (import.meta.env.DEV) {
+        return generateMockQuestions(count);
+      }
       throw new Error("Could not parse JSON response");
     }
 
@@ -89,11 +115,18 @@ export const generateQuizQuestions = async (
     }));
   } catch (error) {
     console.error("Error generating questions:", error);
-    throw error; // Re-throw the error instead of using mock data
+    
+    // In development mode, use mock data as fallback
+    if (import.meta.env.DEV) {
+      console.log("DEV mode: Falling back to mock data due to error");
+      return generateMockQuestions(count);
+    }
+    
+    throw error; // Re-throw the error in production
   }
 };
 
-// Keep the mock data function for development purposes, but don't use it as a fallback
+// Generate mock questions for testing or development fallback
 const generateMockQuestions = (count: number): QuizQuestion[] => {
   const mockQuestions: QuizQuestion[] = [
     {
