@@ -1,7 +1,15 @@
 
 // It's better to use environment variables for API keys
 const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
-const API_URL = "https://openrouter.ai/api/v1/chat/completions";
+const API_URL = import.meta.env.PROD ? '/api/openrouter' : "https://openrouter.ai/api/v1/chat/completions";
+const PROXY_CONFIG = {
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${API_KEY}`,
+    'HTTP-Referer': `${window.location.origin}/`,
+    'X-Title': 'Bacfasil Haitian BAC Prep'
+  }
+};
 
 export interface QuizQuestion {
   id: string;
@@ -55,9 +63,14 @@ export const generateQuizQuestions = async (
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error("API Error:", errorData);
-      throw new Error(`API Error: ${errorData.error?.message || "Unknown error"}`);
+      const errorData = await response.json().catch(() => ({}));
+      console.error("API Error:", {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData,
+        url: response.url
+      });
+      throw new Error(`Erreur du serveur (${response.status}): ${errorData.error?.message || "Problème de communication avec le service AI"}`);
     }
 
     const data = await response.json();
