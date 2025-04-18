@@ -63,7 +63,7 @@ const Index = () => {
       
       <footer className="bg-white border-t py-6">
         <div className="container mx-auto px-4 text-center text-gray-600 text-sm">
-          <p>© 2025 Bacfasil, créé avec du cœur par Pierre-Roberto Leblanc - Un outil d'apprentissage pour les étudiants haïtiens<br/>Contactez-nous en cas de problème : pierrerobertolenlanc1@gmail.com</p>
+          <p>© 2025 BacFasil - Un outil d'apprentissage pour les étudiants haïtiens</p>
         </div>
       </footer>
     </div>
